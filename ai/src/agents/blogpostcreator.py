@@ -26,7 +26,7 @@ def sanitize_filename(title):
     name = title.translate(tr_map).lower()
     name = re.sub(r'[^a-z0-9\-_. ]+', '', name)
     name = name.replace(" ", "-")
-    return name[:48] + ".md"  # Çok uzun başlıkları kes
+    return name[:48] + ".mdx"  # Çok uzun başlıkları kes
 
 def get_or_create_tag(conn, tag_name):
     cur = conn.cursor()

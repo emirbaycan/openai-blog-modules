@@ -8,6 +8,7 @@ import requests
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent.parent / ".env")
 
+
 def ping_search_engines(sitemap_url):
     engines = [
         f"https://www.google.com/ping?sitemap={sitemap_url}",
@@ -31,28 +32,65 @@ def get_db_connection():
         password=os.environ.get("POSTGRES_PASSWORD"),
     )
 
+
 def fetch_title_by_id(title_id):
     conn = get_db_connection()
     with conn:
         with conn.cursor() as cur:
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT id, title FROM blog_creation_queue_blogcreationqueue
                 WHERE id = %s
-            """, (title_id,))
+            """,
+                (title_id,),
+            )
             row = cur.fetchone()
     conn.close()
     return row  # (id, title)
+
 
 def mark_title_as_processed(title_id):
     conn = get_db_connection()
     with conn:
         with conn.cursor() as cur:
-            cur.execute("""
+            cur.execute(
+                """
                 UPDATE blog_creation_queue_blogcreationqueue
                 SET processed = TRUE, processed_at = NOW()
                 WHERE id = %s
-            """, (title_id,))
+            """,
+                (title_id,),
+            )
     conn.close()
+
+def build_and_deploy_static_site():
+    # 1. Build/export the site
+    print("[*] Running static site build...")
+    subprocess.check_call(["npm", "run", "build"], cwd="frontend")
+
+    # 2. Prepare new release directory
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    releases_dir = Path("releases")
+    releases_dir.mkdir(exist_ok=True)
+    new_release = releases_dir / f"site-{timestamp}"
+    if new_release.exists():
+        shutil.rmtree(new_release)
+    shutil.copytree("frontend/out", new_release)
+    print(f"[*] Copied build to {new_release}")
+
+    # 3. Update the symlink atomically
+    symlink_path = Path("html")
+    if symlink_path.exists() or symlink_path.is_symlink():
+        symlink_path.unlink()
+    symlink_path.symlink_to(new_release.resolve(), target_is_directory=True)
+    print(f"[*] Updated symlink {symlink_path} -> {new_release}")
+
+    # 4. (Optional) Clean up old releases (keep last 5)
+    all_releases = sorted(releases_dir.glob("site-*"), reverse=True)
+    for old_release in all_releases[5:]:
+        shutil.rmtree(old_release)
+        print(f"[*] Deleted old release: {old_release}")
+
 
 def process_title(title_id, web_references=3):
     row = fetch_title_by_id(title_id)
@@ -76,13 +114,17 @@ def process_title(title_id, web_references=3):
             ping_search_engines(sitemap_url)
             print("[*] Search engines notified.")
         except Exception as e:
-            print(f"[!] Ursus error: {e}")
+            print(f"[!] error: {e}")
+            
+        build_and_deploy_static_site()
 
     except Exception as e:
         print(f"[!] Exception for {title}: {e}")
 
+
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) < 2:
         print("Usage: python app.py <title_id>")
         sys.exit(1)

@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile.admin
     volumes:
       - ./admin:/app
-      - ./frontend/content/blog:/app/frontend/content/blog
+      - ./frontend/data/blog:/app/frontend/data/blog
       - ./admin/static:/app/staticfiles
     environment:
       - DJANGO_STATIC_ROOT=/usr/share/nginx/static
@@ -33,18 +33,18 @@ services:
              python manage.py collectstatic --noinput &&
              python manage.py runserver 0.0.0.0:8000"
 
-   frontend:
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.frontend
     volumes:
       - ./frontend:/app
-      - ./frontend/content/blog:/app/content/blog  # <-- Share blog posts with Next.js
+      - ./frontend/data/blog:/app/data/blog  # <-- Share blog posts with Next.js
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development  # or production for prod
-      - BLOG_CONTENT_DIR=/app/content/blog
+      - BLOG_CONTENT_DIR=/app/data/blog
     env_file:
       - .env
     command: yarn dev  # For dev; for prod, use 'yarn build && yarn start'
@@ -57,7 +57,7 @@ services:
       - "5000:5000"
     volumes:
       - ./modules/ai:/app
-      - ./frontend/content/blog:/app/frontend/content/blog
+      - ./frontend/data/blog:/app/frontend/data/blog
     environment:
       - PYTHONPATH=/app
     env_file:
@@ -70,7 +70,8 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./output:/usr/share/nginx/html:ro
+      - /usr/share/nginx/html:/usr/share/nginx/html:ro
+      - /usr/share/nginx/releases:/usr/share/nginx/releases:rw
       - ./admin/static:/usr/share/nginx/static:ro 
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
 

@@ -1,0 +1,27 @@
+# Dockerfile.frontend
+
+FROM node:18 AS builder
+
+# Set workdir
+WORKDIR /app
+COPY frontend/ .
+RUN npm install --frozen-lockfile && npm run build
+
+FROM alpine:3.19
+
+RUN apk add --no-cache coreutils
+
+WORKDIR /release
+
+COPY --from=builder /app/out/ ./site
+
+RUN set -eux; \
+    RELEASE_TS="$(date +%Y%m%d-%H%M%S)"; \
+    RELEASE_NAME="site-$RELEASE_TS"; \
+    mkdir -p /usr/share/nginx/releases; \
+    mv ./site /usr/share/nginx/releases/$RELEASE_NAME; \
+    ln -sfn /usr/share/nginx/releases/$RELEASE_NAME /usr/share/nginx/html
+
+VOLUME ["/usr/share/nginx/releases", "/usr/share/nginx/html"]
+
+CMD ["/bin/sh"]
