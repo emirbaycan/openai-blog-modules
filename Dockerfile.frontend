@@ -12,14 +12,7 @@ COPY frontend/package.json frontend/yarn.lock ./
 COPY frontend/.yarnrc.yml ./
 COPY frontend/.yarn/ .yarn/
 
-# node_modules yapısına geçmek için yarnrc'de:
-# nodeLinker: node-modules
-RUN yarn install
-
 # Tüm kaynak kodunu kopyala (env, config dosyaları dahil)
 COPY frontend/ .
 
-# Build
-RUN yarn build
-
-CMD ["node", "watch-build.js"] 
+CMD ["sh", "-c", "yarn install && yarn build && node watch-build.js"]
