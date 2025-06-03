@@ -64,7 +64,7 @@ const unoptimized = process.env.UNOPTIMIZED ? true : true
 module.exports = () => {
   const plugins = [withContentlayer, withBundleAnalyzer]
   return plugins.reduce((acc, next) => next(acc), {
-    output: output,
+    output: 'export',
     basePath,
     reactStrictMode: true,
     trailingSlash: false,
