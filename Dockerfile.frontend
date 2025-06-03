@@ -19,4 +19,7 @@ RUN yarn install
 # Tüm kaynak kodunu kopyala (env, config dosyaları dahil)
 COPY frontend/ .
 
-CMD ["sh", "-c", "yarn build && touch out/.ready && node watch-build.js"]
+# Build
+RUN yarn build
+
+CMD ["node", "watch-build.js"] 

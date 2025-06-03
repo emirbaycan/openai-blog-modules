@@ -39,6 +39,7 @@ services:
     volumes:
       - ./frontend/data/blog:/app/frontend/data/blog 
       - ./frontend/out:/app/out
+      - ./frontend/out:/app/frontend/out
     ports:
       - "3001:3000"
     environment:
@@ -46,12 +47,6 @@ services:
       - BLOG_CONTENT_DIR=/app/data/blog
     env_file: 
       - .env
-    healthcheck:
-      test: ["CMD", "test", "-f", "/app/out/.ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 60
-      start_period: 30s
 
 
   ai:
@@ -59,14 +54,13 @@ services:
       context: .
       dockerfile: Dockerfile.ai
     depends_on:
-      frontend:
-        condition: service_healthy
+      'frontend'
     ports:
       - "5001:5000"
     volumes:
       - ./frontend:/app/frontend
       - ./frontend/data/blog:/app/frontend/data/blog
-      - ./frontend/out:/app/out
+      - ./frontend/out:/app/frontend/out
       - ./releases:/usr/share/nginx/releases
     environment:
       - PYTHONPATH=/app
