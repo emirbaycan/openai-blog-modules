@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            mkdir -p /var/www/blog.admin
+            mkdir -p /var/www/blog.next
 
       - name: Upload .env file
         uses: appleboy/ssh-action@v1.0.3
@@ -29,7 +29,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "${{ secrets.ENV_FILE }}" > /var/www/blog.admin/.env
+            echo "${{ secrets.ENV_FILE }}" > /var/www/blog.next/.env
 
 
       - name: Copy project files via SSH
@@ -39,7 +39,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "."
-          target: "/var/www/blog.admin"
+          target: "/var/www/blog.next"
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v1.0.3
@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /var/www/blog.admin
+            cd /var/www/blog.next
             docker-compose down
             docker-compose up -d --build
         timeout-minutes: 30 
