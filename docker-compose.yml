@@ -59,7 +59,8 @@ services:
       context: .
       dockerfile: Dockerfile.ai
     depends_on:
-      - frontend
+      frontend:
+        condition: service_healthy
     ports:
       - "5001:5000"
     volumes:
