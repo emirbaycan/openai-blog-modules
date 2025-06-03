@@ -69,12 +69,12 @@ def build_and_deploy_static_site(
     out_dir="frontend/out",
     active_dir="/usr/share/nginx/releases/active",
     backup_dir="/usr/share/nginx/releases/backup",
-    releases_dir="/usr/share/nginx/releases",
+    releases_dir="releases",
     keep_releases=5,
 ):
     BASE_DIR = Path(__file__).parent.parent.resolve()
     out_dir = (BASE_DIR / out_dir).resolve()
-    releases_dir = Path(active_dir)
+    releases_dir = (BASE_DIR / releases_dir).resolve()
     releases_dir.mkdir(exist_ok=True)
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     new_release = releases_dir / f"site-{timestamp}"
