@@ -1,21 +1,22 @@
 # Dockerfile.ai
 
-
 FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY ./ai/requirements.txt /app/requirements-ai.txt
-
 RUN pip install --no-cache-dir -r requirements-ai.txt
 
-COPY ai/. . 
- 
+COPY ai/. .
+
 ENV PYTHONPATH=/app:/app/src
 
-CMD /bin/sh -c "uvicorn src.ai_api:app --host 0.0.0.0 --port 5000 & while true; do sleep 86400; echo \"[CRON] \$(date): processing blog title\"; python ai/scripts/dispatch_one_job.py; done"
+CMD /bin/sh -c "\
+python scripts/build_ssg.py && \
+uvicorn src.ai_api:app --host 0.0.0.0 --port 5000 & \
+python scripts/watcher.py & \
+while true; do \
+    sleep 86400; \
+    echo \"[CRON] \$(date): processing blog title\"; \
+    python scripts/dispatch_one_job.py; \
+done"

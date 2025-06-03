@@ -62,34 +62,129 @@ def mark_title_as_processed(title_id):
                 (title_id,),
             )
     conn.close()
+import shutil, time, os
+from pathlib import Path
 
-def build_and_deploy_static_site():
-    # 1. Build/export the site
-    print("[*] Running static site build...")
-    subprocess.check_call(["npm", "run", "build"], cwd="frontend")
-
-    # 2. Prepare new release directory
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    releases_dir = Path("releases")
+def build_and_deploy_static_site(
+    out_dir="frontend/out",
+    active_dir="/usr/share/nginx/releases/active",
+    backup_dir="/usr/share/nginx/releases/backup",
+    releases_dir="releases",
+    keep_releases=5,
+):
+    BASE_DIR = Path(__file__).parent.parent.resolve()
+    out_dir = (BASE_DIR / out_dir).resolve()
+    releases_dir = (BASE_DIR / releases_dir).resolve()
     releases_dir.mkdir(exist_ok=True)
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
     new_release = releases_dir / f"site-{timestamp}"
-    if new_release.exists():
-        shutil.rmtree(new_release)
-    shutil.copytree("frontend/out", new_release)
-    print(f"[*] Copied build to {new_release}")
 
-    # 3. Update the symlink atomically
-    symlink_path = Path("html")
-    if symlink_path.exists() or symlink_path.is_symlink():
-        symlink_path.unlink()
-    symlink_path.symlink_to(new_release.resolve(), target_is_directory=True)
-    print(f"[*] Updated symlink {symlink_path} -> {new_release}")
+    def is_dir_ready(p):
+        return p.exists() and os.access(p, os.R_OK | os.X_OK) and any(p.iterdir())
 
-    # 4. (Optional) Clean up old releases (keep last 5)
-    all_releases = sorted(releases_dir.glob("site-*"), reverse=True)
-    for old_release in all_releases[5:]:
-        shutil.rmtree(old_release)
-        print(f"[*] Deleted old release: {old_release}")
+    def safe_chmod(path, mode):
+        try:
+            os.chmod(path, mode)
+        except Exception as e:
+            print(f"[WARN] chmod failed: {e}")
+
+    try:
+        shutil.copytree(out_dir, new_release)
+    except Exception as e:
+        print(f"[ERROR] Failed to copy new release: {e}")
+        return
+
+    active = Path(active_dir)
+    backup = Path(backup_dir)
+
+    # LOCK dosyası ile paralel çalışmayı engelle
+    lock_file = releases_dir / ".deploy_lock"
+    if lock_file.exists():
+        print("[ERROR] Deploy already running. Exiting.")
+        return
+    lock_file.touch()
+
+    try:
+        # Hangi dizin canlı?
+        if is_dir_ready(active):
+            print("[INFO] ACTIVE is live, updating ACTIVE, backup = BACKUP")
+            if backup.exists():
+                shutil.rmtree(backup)
+            try:
+                shutil.copytree(active, backup)
+            except Exception as e:
+                print(f"[ERROR] Backup failed: {e}")
+                return
+
+            # Önce içeriği temizle
+            for item in active.iterdir():
+                try:
+                    if item.is_file() or item.is_symlink():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                except Exception as e:
+                    print(f"[WARN] Couldn't clean active: {e}")
+            try:
+                shutil.copytree(new_release, active, dirs_exist_ok=True)
+                safe_chmod(active, 0o755)
+            except Exception as e:
+                print(f"[ERROR] Copy new release to active failed: {e}")
+                return
+
+        elif is_dir_ready(backup):
+            print("[INFO] BACKUP is live, updating BACKUP, backup = ACTIVE")
+            if active.exists():
+                shutil.rmtree(active)
+            try:
+                shutil.copytree(backup, active)
+            except Exception as e:
+                print(f"[ERROR] Restore active from backup failed: {e}")
+                return
+
+            for item in backup.iterdir():
+                try:
+                    if item.is_file() or item.is_symlink():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                except Exception as e:
+                    print(f"[WARN] Couldn't clean backup: {e}")
+            try:
+                shutil.copytree(new_release, backup, dirs_exist_ok=True)
+                safe_chmod(backup, 0o755)
+            except Exception as e:
+                print(f"[ERROR] Copy new release to backup failed: {e}")
+                return
+
+        else:
+            print("[INFO] First deploy: active -> new_release")
+            shutil.copytree(new_release, active)
+            safe_chmod(active, 0o755)
+
+        # Eski release'leri sil (keep_releases)
+        all_releases = sorted(releases_dir.glob("site-*"), reverse=True)
+        for old_release in all_releases[keep_releases:]:
+            print(f"[*] Deleting old release: {old_release}")
+            try:
+                if old_release.is_symlink():
+                    old_release.unlink()
+                else:
+                    shutil.rmtree(old_release)
+            except Exception as e:
+                print(f"[WARN] Delete failed for {old_release}: {e}")
+
+        print(f"[*] ACTIVE: {active_dir}")
+        print(f"[*] BACKUP: {backup_dir}")
+        print("[SUCCESS] Deploy completed.")
+
+    finally:
+        # Lock dosyasını sil
+        if lock_file.exists():
+            lock_file.unlink()
+
+
+
 
 
 def process_title(title_id, web_references=3):
@@ -108,6 +203,7 @@ def process_title(title_id, web_references=3):
             return
         print(f"[*] Saved: {filepath}")
         mark_title_as_processed(title_id)
+        build_and_deploy_static_site()
 
         try:
             sitemap_url = "https://blog.emirbaycan.com.tr/sitemap.xml"
@@ -115,8 +211,6 @@ def process_title(title_id, web_references=3):
             print("[*] Search engines notified.")
         except Exception as e:
             print(f"[!] error: {e}")
-            
-        build_and_deploy_static_site()
 
     except Exception as e:
         print(f"[!] Exception for {title}: {e}")

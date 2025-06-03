@@ -19,7 +19,8 @@ ENV DJANGO_SETTINGS_MODULE=blog.settings
 
 RUN mkdir -p /app/static
 
-CMD python manage.py migrate && \
+CMD python wait_for_db.py "$POSTGRES_HOST" "5432" "$POSTGRES_USER" "$POSTGRES_PASSWORD" "$POSTGRES_DB" 60 && \
+    python manage.py migrate && \
     python manage.py collectstatic --noinput && \
     python create_seed_users.py && \
     gunicorn blog.wsgi:application --bind 0.0.0.0:8000

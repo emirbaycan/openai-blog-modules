@@ -1,27 +1,25 @@
 # Dockerfile.frontend
 
-FROM node:18 AS builder
+FROM node:18
 
-# Set workdir
 WORKDIR /app
+
+# Yarn Berry ile uyumlu çalışmak için corepack kullan
+RUN corepack enable && corepack prepare yarn@3.6.1 --activate
+
+# Sadece bağımlılık dosyalarını önce kopyala, cache kullanımı için
+COPY frontend/package.json frontend/yarn.lock ./
+COPY frontend/.yarnrc.yml ./
+COPY frontend/.yarn/ .yarn/
+
+# node_modules yapısına geçmek için yarnrc'de:
+# nodeLinker: node-modules
+RUN yarn install
+
+# Tüm kaynak kodunu kopyala (env, config dosyaları dahil)
 COPY frontend/ .
-RUN npm install --frozen-lockfile && npm run build
 
-FROM alpine:3.19
+# Build
+RUN yarn build
 
-RUN apk add --no-cache coreutils
-
-WORKDIR /release
-
-COPY --from=builder /app/out/ ./site
-
-RUN set -eux; \
-    RELEASE_TS="$(date +%Y%m%d-%H%M%S)"; \
-    RELEASE_NAME="site-$RELEASE_TS"; \
-    mkdir -p /usr/share/nginx/releases; \
-    mv ./site /usr/share/nginx/releases/$RELEASE_NAME; \
-    ln -sfn /usr/share/nginx/releases/$RELEASE_NAME /usr/share/nginx/html
-
-VOLUME ["/usr/share/nginx/releases", "/usr/share/nginx/html"]
-
-CMD ["/bin/sh"]
+CMD ["node", "watch-build.js"]

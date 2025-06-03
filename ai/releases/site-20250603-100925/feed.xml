@@ -1,0 +1,24 @@
+
+  <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+      <title>Next.js Starter Blog</title>
+      <link>https://tailwind-nextjs-starter-blog.vercel.app/blog</link>
+      <description>A blog created with Next.js and Tailwind.css</description>
+      <language>en-us</language>
+      <managingEditor>address@yoursite.com (Tails Azimuth)</managingEditor>
+      <webMaster>address@yoursite.com (Tails Azimuth)</webMaster>
+      <lastBuildDate>Wed, 28 May 2025 00:00:00 GMT</lastBuildDate>
+      <atom:link href="https://tailwind-nextjs-starter-blog.vercel.app/feed.xml" rel="self" type="application/rss+xml"/>
+      
+  <item>
+    <guid>https://tailwind-nextjs-starter-blog.vercel.app/blog/turkiyede-girisimcilik-ekosistemi</guid>
+    <title>Türkiye’de girişimcilik ekosistemi</title>
+    <link>https://tailwind-nextjs-starter-blog.vercel.app/blog/turkiyede-girisimcilik-ekosistemi</link>
+    <description>Türkiye&#39;de girişimcilik ekosisteminin oluşumu, 2000&#39;li yılların başında internet şirketlerinin kurulmasıyla başladı.</description>
+    <pubDate>Wed, 28 May 2025 00:00:00 GMT</pubDate>
+    <author>address@yoursite.com (Tails Azimuth)</author>
+    <category>türkiye</category><category>girişimcilik</category><category>nin</category><category>ekosisteminin</category><category>yılında</category>
+  </item>
+
+    </channel>
+  </rss>
