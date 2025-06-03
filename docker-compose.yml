@@ -59,7 +59,7 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - ./frontend/data/blog:/app/frontend/data/blog
-      - ./frontend/out:/app/out
+      - ./frontend/out:/app/frontend/out
       - ./releases:/usr/share/nginx/releases:rw
     environment:
       - PYTHONPATH=/app
