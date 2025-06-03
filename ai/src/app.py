@@ -69,6 +69,7 @@ import os
 import time
 
 def set_read_only(path):
+    os.makedirs(path, exist_ok=True)    # Dizin yoksa oluştur!
     os.chmod(path, 0o755)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
@@ -77,6 +78,7 @@ def set_read_only(path):
             os.chmod(os.path.join(root, momo), 0o644)
 
 def set_no_read(path):
+    os.makedirs(path, exist_ok=True)    # Dizin yoksa oluştur!
     os.chmod(path, 0o733)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
@@ -94,6 +96,7 @@ def build_and_deploy_static_site(
 ):
     BASE_DIR = Path(__file__).parent.parent.resolve()
     out_dir = (BASE_DIR / out_dir).resolve()
+    (BASE_DIR / "releases").mkdir(parents=True, exist_ok=True) 
     active = Path(active_dir)
     backup = Path(backup_dir)
     lock_file = (BASE_DIR / "releases" / ".deploy_lock")
