@@ -44,7 +44,7 @@ services:
     environment:
       - NODE_ENV=development 
       - BLOG_CONTENT_DIR=/app/data/blog
-    env_file:
+    env_file: 
       - .env
 
 
