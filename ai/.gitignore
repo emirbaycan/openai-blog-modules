@@ -9,4 +9,4 @@ venv/
 *.pyc
 blogs/
 .idea/
-releases
+releases/
