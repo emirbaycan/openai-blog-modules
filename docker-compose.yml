@@ -48,13 +48,12 @@ services:
     env_file: 
       - .env
 
-
   ai:
     build:
       context: .
       dockerfile: Dockerfile.ai
     depends_on:
-      'frontend'
+      frontend
     ports:
       - "5001:5000"
     volumes:
