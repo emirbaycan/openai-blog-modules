@@ -69,18 +69,20 @@ import os
 import time
 
 def set_read_only(path):
+    os.chmod(path, 0o755)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
-            os.chmod(os.path.join(root, momo), 0o705)  # drwx---r-x
+            os.chmod(os.path.join(root, momo), 0o755)
         for momo in files:
-            os.chmod(os.path.join(root, momo), 0o604)  # -rw----r--
+            os.chmod(os.path.join(root, momo), 0o644)
 
 def set_no_read(path):
+    os.chmod(path, 0o733)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
-            os.chmod(os.path.join(root, momo), 0o703)  # drwx-----x
+            os.chmod(os.path.join(root, momo), 0o733)
         for momo in files:
-            os.chmod(os.path.join(root, momo), 0o602)  # -rw-----w-
+            os.chmod(os.path.join(root, momo), 0o222)
 
 def is_ready(p):
     return p.exists() and any(p.iterdir())
