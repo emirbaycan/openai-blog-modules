@@ -72,7 +72,7 @@ def build_and_deploy_static_site(
     releases_dir="releases",
     keep_releases=5,
 ):
-    BASE_DIR = Path(__file__).parent.parent.resolve()
+    BASE_DIR = Path(__file__).parent.parent.parent.resolve()
     out_dir = (BASE_DIR / out_dir).resolve()
     releases_dir = (BASE_DIR / releases_dir).resolve()
     releases_dir.mkdir(exist_ok=True)
