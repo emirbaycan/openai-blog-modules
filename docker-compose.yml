@@ -38,7 +38,6 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     volumes:
-      - ./frontend:/app
       - ./frontend/data/blog:/app/data/blog 
       - ./frontend/out:/app/frontend/out
     ports:
