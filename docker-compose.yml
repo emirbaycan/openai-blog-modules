@@ -70,7 +70,7 @@ services:
 
   static:
     image: nginx:alpine
-    container_name: blog_next_static_site
+    container_name: blognext_static_site
     restart: unless-stopped
     ports:
       - "8081:80"
