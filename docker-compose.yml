@@ -50,7 +50,7 @@ services:
       test: ["CMD", "test", "-f", "/app/out/.ready"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 60
       start_period: 30s
 
 
