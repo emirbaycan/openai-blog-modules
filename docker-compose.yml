@@ -11,7 +11,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   admin:
     build:
@@ -27,7 +27,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "8001:8000"
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
@@ -42,7 +42,7 @@ services:
       - ./frontend/data/blog:/app/data/blog 
       - ./frontend/out:/app/frontend/out
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - NODE_ENV=development 
       - BLOG_CONTENT_DIR=/app/data/blog
@@ -55,7 +55,7 @@ services:
       context: .
       dockerfile: Dockerfile.ai
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./ai:/app
       - ./frontend:/app/frontend
@@ -73,7 +73,7 @@ services:
     container_name: static_site
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
       - ./html:/usr/share/nginx/html:ro
       - ./releases:/usr/share/nginx/releases:rw
