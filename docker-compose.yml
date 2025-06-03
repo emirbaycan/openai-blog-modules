@@ -52,6 +52,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ai
+    depends_on:
+      - frontend
     ports:
       - "5001:5000"
     volumes:
