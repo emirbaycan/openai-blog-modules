@@ -62,128 +62,68 @@ def mark_title_as_processed(title_id):
                 (title_id,),
             )
     conn.close()
-import shutil, time, os
+
+import shutil
 from pathlib import Path
+import os
+import time
+
+def set_read_only(path):
+    for root, dirs, files in os.walk(path):
+        for momo in dirs:
+            os.chmod(os.path.join(root, momo), 0o705)  # drwx---r-x
+        for momo in files:
+            os.chmod(os.path.join(root, momo), 0o604)  # -rw----r--
+
+def set_no_read(path):
+    for root, dirs, files in os.walk(path):
+        for momo in dirs:
+            os.chmod(os.path.join(root, momo), 0o703)  # drwx-----x
+        for momo in files:
+            os.chmod(os.path.join(root, momo), 0o602)  # -rw-----w-
+
+def is_ready(p):
+    return p.exists() and any(p.iterdir())
 
 def build_and_deploy_static_site(
     out_dir="frontend/out",
     active_dir="/usr/share/nginx/releases/active",
     backup_dir="/usr/share/nginx/releases/backup",
-    releases_dir="releases",
-    keep_releases=5,
 ):
     BASE_DIR = Path(__file__).parent.parent.resolve()
     out_dir = (BASE_DIR / out_dir).resolve()
-    releases_dir = (BASE_DIR / releases_dir).resolve()
-    releases_dir.mkdir(exist_ok=True)
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    new_release = releases_dir / f"site-{timestamp}"
-
-    def is_dir_ready(p):
-        return p.exists() and os.access(p, os.R_OK | os.X_OK) and any(p.iterdir())
-
-    def safe_chmod(path, mode):
-        try:
-            os.chmod(path, mode)
-        except Exception as e:
-            print(f"[WARN] chmod failed: {e}")
-
-    try:
-        shutil.copytree(out_dir, new_release, dirs_exist_ok=True)
-    except Exception as e:
-        print(f"[ERROR] Failed to copy new release: {e}")
-        return
-
     active = Path(active_dir)
     backup = Path(backup_dir)
-
-    # LOCK dosyası ile paralel çalışmayı engelle
-    lock_file = releases_dir / ".deploy_lock"
+    lock_file = (BASE_DIR / "releases" / ".deploy_lock")
     if lock_file.exists():
         print("[ERROR] Deploy already running. Exiting.")
         return
     lock_file.touch()
 
     try:
-        # Hangi dizin canlı?
-        if is_dir_ready(active):
-            print("[INFO] ACTIVE is live, updating ACTIVE, backup = BACKUP")
-            if backup.exists():
-                shutil.rmtree(backup)
-            try:
-                shutil.copytree(active, backup, dirs_exist_ok=True)
-            except Exception as e:
-                print(f"[ERROR] Backup failed: {e}")
-                return
-
-            # Önce içeriği temizle
-            for item in active.iterdir():
-                try:
-                    if item.is_file() or item.is_symlink():
-                        item.unlink()
-                    elif item.is_dir():
-                        shutil.rmtree(item)
-                except Exception as e:
-                    print(f"[WARN] Couldn't clean active: {e}")
-            try:
-                shutil.copytree(new_release, active, dirs_exist_ok=True)
-                safe_chmod(active, 0o755)
-            except Exception as e:
-                print(f"[ERROR] Copy new release to active failed: {e}")
-                return
-
-        elif is_dir_ready(backup):
-            print("[INFO] BACKUP is live, updating BACKUP, backup = ACTIVE")
+        if not is_ready(active):
             if active.exists():
                 shutil.rmtree(active)
-            try:
-                shutil.copytree(backup, active, dirs_exist_ok=True)
-            except Exception as e:
-                print(f"[ERROR] Restore active from backup failed: {e}")
-                return
-
-            for item in backup.iterdir():
-                try:
-                    if item.is_file() or item.is_symlink():
-                        item.unlink()
-                    elif item.is_dir():
-                        shutil.rmtree(item)
-                except Exception as e:
-                    print(f"[WARN] Couldn't clean backup: {e}")
-            try:
-                shutil.copytree(new_release, backup, dirs_exist_ok=True)
-                safe_chmod(backup, 0o755)
-            except Exception as e:
-                print(f"[ERROR] Copy new release to backup failed: {e}")
-                return
-
+            shutil.copytree(out_dir, active)
+            set_read_only(active)
+            set_no_read(backup)
+            print(f"[INFO] Wrote to ACTIVE ({active}), set read, backup is no-read.")
+        elif not is_ready(backup):
+            if backup.exists():
+                shutil.rmtree(backup)
+            shutil.copytree(out_dir, backup)
+            set_read_only(backup)
+            set_no_read(active)
+            print(f"[INFO] Wrote to BACKUP ({backup}), set read, active is no-read.")
         else:
-            print("[INFO] First deploy: active -> new_release")
-            shutil.copytree(new_release, active, dirs_exist_ok=True)
-            safe_chmod(active, 0o755)
+            print("[ERROR] Both active and backup are filled. Clean up manually!")
+            return
 
-        # Eski release'leri sil (keep_releases)
-        all_releases = sorted(releases_dir.glob("site-*"), reverse=True)
-        for old_release in all_releases[keep_releases:]:
-            print(f"[*] Deleting old release: {old_release}")
-            try:
-                if old_release.is_symlink():
-                    old_release.unlink()
-                else:
-                    shutil.rmtree(old_release)
-            except Exception as e:
-                print(f"[WARN] Delete failed for {old_release}: {e}")
-
-        print(f"[*] ACTIVE: {active_dir}")
-        print(f"[*] BACKUP: {backup_dir}")
         print("[SUCCESS] Deploy completed.")
 
     finally:
-        # Lock dosyasını sil
         if lock_file.exists():
             lock_file.unlink()
-
-
 
 
 
