@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     volumes:
-      - ./frontend/data/blog:/app/data/blog 
+      - ./frontend/data/blog:/app/frontend/data/blog 
       - ./frontend/out:/app/frontend/out
     ports:
       - "3001:3000"
