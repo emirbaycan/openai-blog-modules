@@ -89,7 +89,7 @@ def build_and_deploy_static_site(
             print(f"[WARN] chmod failed: {e}")
 
     try:
-        shutil.copytree(out_dir, new_release)
+        shutil.copytree(out_dir, new_release, dirs_exist_ok=True)
     except Exception as e:
         print(f"[ERROR] Failed to copy new release: {e}")
         return
@@ -111,7 +111,7 @@ def build_and_deploy_static_site(
             if backup.exists():
                 shutil.rmtree(backup)
             try:
-                shutil.copytree(active, backup)
+                shutil.copytree(active, backup, dirs_exist_ok=True)
             except Exception as e:
                 print(f"[ERROR] Backup failed: {e}")
                 return
@@ -137,7 +137,7 @@ def build_and_deploy_static_site(
             if active.exists():
                 shutil.rmtree(active)
             try:
-                shutil.copytree(backup, active)
+                shutil.copytree(backup, active, dirs_exist_ok=True)
             except Exception as e:
                 print(f"[ERROR] Restore active from backup failed: {e}")
                 return
@@ -159,7 +159,7 @@ def build_and_deploy_static_site(
 
         else:
             print("[INFO] First deploy: active -> new_release")
-            shutil.copytree(new_release, active)
+            shutil.copytree(new_release, active, dirs_exist_ok=True)
             safe_chmod(active, 0o755)
 
         # Eski release'leri sil (keep_releases)
