@@ -63,13 +63,15 @@ def mark_title_as_processed(title_id):
             )
     conn.close()
 
+
 import shutil
 from pathlib import Path
 import os
 import time
 
+
 def set_read_only(path):
-    os.makedirs(path, exist_ok=True)    # Dizin yoksa oluştur!
+    os.makedirs(path, exist_ok=True)  # Dizin yoksa oluştur!
     os.chmod(path, 0o755)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
@@ -77,8 +79,9 @@ def set_read_only(path):
         for momo in files:
             os.chmod(os.path.join(root, momo), 0o644)
 
+
 def set_no_read(path):
-    os.makedirs(path, exist_ok=True)    # Dizin yoksa oluştur!
+    os.makedirs(path, exist_ok=True)  # Dizin yoksa oluştur!
     os.chmod(path, 0o733)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
@@ -86,12 +89,15 @@ def set_no_read(path):
         for momo in files:
             os.chmod(os.path.join(root, momo), 0o222)
 
+
 def is_ready(p):
     return p.exists() and any(p.iterdir())
+
 
 import shutil
 from pathlib import Path
 import os
+
 
 def log_dir_contents(path):
     print(f"[LOG] Directory contents of {path}:")
@@ -100,7 +106,10 @@ def log_dir_contents(path):
         return
     for entry in os.scandir(path):
         typ = "DIR" if entry.is_dir() else "FILE"
-        print(f"  [{typ}] {entry.name} - owner: {entry.stat().st_uid}, mode: {oct(entry.stat().st_mode)}")
+        print(
+            f"  [{typ}] {entry.name} - owner: {entry.stat().st_uid}, mode: {oct(entry.stat().st_mode)}"
+        )
+
 
 def build_and_deploy_static_site(
     out_dir="frontend/out",
@@ -113,10 +122,10 @@ def build_and_deploy_static_site(
 
     log_dir_contents(str(out_dir))
 
-    (BASE_DIR / "releases").mkdir(parents=True, exist_ok=True) 
+    (BASE_DIR / "releases").mkdir(parents=True, exist_ok=True)
     active = Path(active_dir)
     backup = Path(backup_dir)
-    lock_file = (BASE_DIR / "releases" / ".deploy_lock")
+    lock_file = BASE_DIR / "releases" / ".deploy_lock"
     if lock_file.exists():
         print("[ERROR] Deploy already running. Exiting.")
         return
@@ -129,7 +138,7 @@ def build_and_deploy_static_site(
                 shutil.rmtree(active)
             print(f"[INFO] Copying {out_dir} -> {active}")
             shutil.copytree(out_dir, active)
-            set_read_only(active)            
+            set_read_only(active)
             set_no_read(backup)
             if backup.exists():
                 print(f"[INFO] Cleaning and locking BACKUP: {backup}")
@@ -143,7 +152,7 @@ def build_and_deploy_static_site(
             shutil.copytree(out_dir, backup)
             set_read_only(backup)
             set_no_read(active)
-                        if active.exists():
+            if active.exists():
                 print(f"[INFO] Cleaning and locking ACTIVE: {active}")
                 shutil.rmtree(active)
             print(f"[INFO] Wrote to BACKUP ({backup}), set read, active is no-read.")
@@ -161,9 +170,6 @@ def build_and_deploy_static_site(
         if lock_file.exists():
             lock_file.unlink()
         print("[INFO] Lock file released.")
-
-
-
 
 
 def process_title(title_id, web_references=3):
