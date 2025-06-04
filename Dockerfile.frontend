@@ -3,15 +3,12 @@ FROM node:22
 
 WORKDIR /app
 
-
 RUN corepack enable && corepack prepare yarn@3.6.1 --activate
 COPY frontend/package.json frontend/yarn.lock ./
 COPY frontend/.yarnrc.yml ./
 COPY frontend/.yarn/ .yarn/
 RUN yarn install
 COPY frontend/ .
-RUN yarn build  
- 
-RUN chown -R 1000:1000 /app/out
+RUN yarn build && cp -r /app/out/* /app/frontend/out/
 
 CMD ["node", "watch-build.js"]
