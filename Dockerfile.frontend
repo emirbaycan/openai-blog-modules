@@ -12,6 +12,6 @@ RUN yarn install
 COPY frontend/ .
 RUN yarn build  
  
-RUN chown -R 1000:1000 /app/frontend/out
+RUN chown -R 1000:1000 /app/out
 
 CMD ["node", "watch-build.js"]
