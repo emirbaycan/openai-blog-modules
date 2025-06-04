@@ -10,6 +10,8 @@ COPY frontend/.yarn/ .yarn/
 RUN yarn install
 COPY frontend/ .
 
+RUN rm -f /app/frontend/out/.ready
+
 COPY frontend/docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 CMD ["sh", "./docker-entrypoint.sh"]
