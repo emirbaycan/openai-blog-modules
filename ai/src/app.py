@@ -87,7 +87,7 @@ def set_no_read(path):
         for momo in dirs:
             os.chmod(os.path.join(root, momo), 0o333)
         for momo in files:
-            os.chmod(os.path.join(root, momo), 0o333)
+            os.chmod(os.path.join(root, momo), 0o222)
 
 
 def is_ready(p):
