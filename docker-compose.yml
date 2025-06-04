@@ -38,7 +38,7 @@ services:
       dockerfile: Dockerfile.frontend
     volumes:
       - ./frontend/data/blog:/app/frontend/data/blog 
-      - ./frontend/out:/app/frontend/out
+      - ./frontend/out:/app/out
     ports:
       - "3001:3000"
     environment:
@@ -58,7 +58,7 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - ./frontend/data/blog:/app/frontend/data/blog
-      - ./frontend/out:/app/frontend/out
+      - ./frontend/out:/app/out
       - ./releases:/usr/share/nginx/releases
     environment:
       - PYTHONPATH=/app
