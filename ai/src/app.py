@@ -105,7 +105,7 @@ def log_dir_contents(dir_path):
             print(f"   [D] {p.relative_to(dir_path)}/")
 
 def build_and_deploy_static_site(
-    out_dir="frontend/out",
+    out_dir="out",
     active_dir="/usr/share/nginx/releases/active",
     backup_dir="/usr/share/nginx/releases/backup",
 ):
