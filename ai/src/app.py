@@ -89,6 +89,21 @@ def set_no_read(path):
 def is_ready(p):
     return p.exists() and any(p.iterdir())
 
+def log_dir_contents(dir_path):
+    print(f"[LOG] İçerik listeleniyor: {dir_path}")
+    if not os.path.exists(dir_path):
+        print("   [!] Dizin mevcut değil!")
+        return
+    entries = list(Path(dir_path).rglob("*"))
+    if not entries:
+        print("   [!] Dizin BOŞ!")
+    for entry in entries:
+        p = Path(entry)
+        if p.is_file():
+            print(f"   [F] {p.relative_to(dir_path)}  ({p.stat().st_size} bytes)")
+        elif p.is_dir():
+            print(f"   [D] {p.relative_to(dir_path)}/")
+
 def build_and_deploy_static_site(
     out_dir="frontend/out",
     active_dir="/usr/share/nginx/releases/active",
@@ -96,6 +111,7 @@ def build_and_deploy_static_site(
 ):
     BASE_DIR = Path(__file__).parent.parent.resolve()
     out_dir = (BASE_DIR / out_dir).resolve()
+    log_dir_contents(str(out_dir))
     (BASE_DIR / "releases").mkdir(parents=True, exist_ok=True) 
     active = Path(active_dir)
     backup = Path(backup_dir)
