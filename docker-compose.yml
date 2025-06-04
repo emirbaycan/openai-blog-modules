@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     volumes:
-      - ./frontend/out:/app/out
+      - ./frontend/out:/app/frontend/out
       - ./frontend/data/blog:/app/frontend/data/blog
     ports:
       - "3001:3000"
@@ -46,7 +46,6 @@ services:
       - BLOG_CONTENT_DIR=/app/data/blog
     env_file: 
       - .env
-
 
   ai:
     build:
@@ -57,9 +56,8 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - ./frontend:/app/frontend
       - ./frontend/data/blog:/app/frontend/data/blog
-      - ./frontend/out:/app/out
+      - ./frontend/out:/app/frontend/out
       - ./releases:/usr/share/nginx/releases
     environment:
       - PYTHONPATH=/app
