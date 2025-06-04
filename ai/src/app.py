@@ -129,8 +129,11 @@ def build_and_deploy_static_site(
                 shutil.rmtree(active)
             print(f"[INFO] Copying {out_dir} -> {active}")
             shutil.copytree(out_dir, active)
-            set_read_only(active)
+            set_read_only(active)            
             set_no_read(backup)
+            if backup.exists():
+                print(f"[INFO] Cleaning and locking BACKUP: {backup}")
+                shutil.rmtree(backup)
             print(f"[INFO] Wrote to ACTIVE ({active}), set read, backup is no-read.")
         elif not is_ready(backup):
             if backup.exists():
@@ -140,6 +143,9 @@ def build_and_deploy_static_site(
             shutil.copytree(out_dir, backup)
             set_read_only(backup)
             set_no_read(active)
+                        if active.exists():
+                print(f"[INFO] Cleaning and locking ACTIVE: {active}")
+                shutil.rmtree(active)
             print(f"[INFO] Wrote to BACKUP ({backup}), set read, active is no-read.")
         else:
             print("[ERROR] Both active and backup are filled. Clean up manually!")
