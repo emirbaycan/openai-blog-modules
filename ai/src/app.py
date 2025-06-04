@@ -89,20 +89,18 @@ def set_no_read(path):
 def is_ready(p):
     return p.exists() and any(p.iterdir())
 
-def log_dir_contents(dir_path):
-    print(f"[LOG] İçerik listeleniyor: {dir_path}")
-    if not os.path.exists(dir_path):
-        print("   [!] Dizin mevcut değil!")
+import shutil
+from pathlib import Path
+import os
+
+def log_dir_contents(path):
+    print(f"[LOG] Directory contents of {path}:")
+    if not os.path.exists(path):
+        print("  [WARN] Path does not exist!")
         return
-    entries = list(Path(dir_path).rglob("*"))
-    if not entries:
-        print("   [!] Dizin BOŞ!")
-    for entry in entries:
-        p = Path(entry)
-        if p.is_file():
-            print(f"   [F] {p.relative_to(dir_path)}  ({p.stat().st_size} bytes)")
-        elif p.is_dir():
-            print(f"   [D] {p.relative_to(dir_path)}/")
+    for entry in os.scandir(path):
+        typ = "DIR" if entry.is_dir() else "FILE"
+        print(f"  [{typ}] {entry.name} - owner: {entry.stat().st_uid}, mode: {oct(entry.stat().st_mode)}")
 
 def build_and_deploy_static_site(
     out_dir="frontend/out",
@@ -111,7 +109,10 @@ def build_and_deploy_static_site(
 ):
     BASE_DIR = Path(__file__).parent.parent.resolve()
     out_dir = (BASE_DIR / out_dir).resolve()
+    print(f"[INFO] Out dir: {out_dir}")
+
     log_dir_contents(str(out_dir))
+
     (BASE_DIR / "releases").mkdir(parents=True, exist_ok=True) 
     active = Path(active_dir)
     backup = Path(backup_dir)
@@ -124,14 +125,18 @@ def build_and_deploy_static_site(
     try:
         if not is_ready(active):
             if active.exists():
+                print(f"[INFO] Removing existing ACTIVE: {active}")
                 shutil.rmtree(active)
+            print(f"[INFO] Copying {out_dir} -> {active}")
             shutil.copytree(out_dir, active)
             set_read_only(active)
             set_no_read(backup)
             print(f"[INFO] Wrote to ACTIVE ({active}), set read, backup is no-read.")
         elif not is_ready(backup):
             if backup.exists():
+                print(f"[INFO] Removing existing BACKUP: {backup}")
                 shutil.rmtree(backup)
+            print(f"[INFO] Copying {out_dir} -> {backup}")
             shutil.copytree(out_dir, backup)
             set_read_only(backup)
             set_no_read(active)
@@ -142,9 +147,16 @@ def build_and_deploy_static_site(
 
         print("[SUCCESS] Deploy completed.")
 
+    except Exception as e:
+        print(f"[ERROR] Exception: {e}")
+        print("[FAIL] Deploy failed.")
+
     finally:
         if lock_file.exists():
             lock_file.unlink()
+        print("[INFO] Lock file released.")
+
+
 
 
 
