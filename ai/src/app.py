@@ -82,12 +82,12 @@ def set_read_only(path):
 
 def set_no_read(path):
     os.makedirs(path, exist_ok=True)  # Dizin yoksa oluştur!
-    os.chmod(path, 0o733)  # Önce root izin!
+    os.chmod(path, 0o333)  # Önce root izin!
     for root, dirs, files in os.walk(path):
         for momo in dirs:
-            os.chmod(os.path.join(root, momo), 0o733)
+            os.chmod(os.path.join(root, momo), 0o333)
         for momo in files:
-            os.chmod(os.path.join(root, momo), 0o222)
+            os.chmod(os.path.join(root, momo), 0o333)
 
 
 def is_ready(p):
