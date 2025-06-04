@@ -10,5 +10,5 @@ COPY frontend/.yarn/ .yarn/
 RUN yarn install
 COPY frontend/ .
 RUN yarn build  
-
+ 
 CMD ["node", "watch-build.js"]
