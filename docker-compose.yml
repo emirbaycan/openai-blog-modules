@@ -46,13 +46,19 @@ services:
       - BLOG_CONTENT_DIR=/app/data/blog
     env_file: 
       - .env
+    healthcheck:
+      test: ["CMD", "test", "-f", "/app/frontend/out/.ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 60
 
   ai:
     build:
       context: .
       dockerfile: Dockerfile.ai
     depends_on:
-      - frontend
+      frontend:
+        condition: service_healthy
     ports:
       - "5001:5000"
     volumes:
