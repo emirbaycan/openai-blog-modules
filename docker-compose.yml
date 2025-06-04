@@ -32,17 +32,10 @@ services:
              python manage.py collectstatic --noinput &&
              python manage.py runserver 0.0.0.0:8000"
 
-  frontend-build:
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-
-  frontend:
-    image: frontend-build
-    # veya
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile.frontend
     volumes:
       - ./frontend/out:/app/out
       - ./frontend/data/blog:/app/frontend/data/blog

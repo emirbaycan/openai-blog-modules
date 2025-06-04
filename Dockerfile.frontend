@@ -9,6 +9,6 @@ COPY frontend/.yarnrc.yml ./
 COPY frontend/.yarn/ .yarn/
 RUN yarn install
 COPY frontend/ .
-RUN yarn build     # <<<<< en kritik satır
+RUN yarn build   
 
 CMD ["node", "watch-build.js"]
