@@ -48,7 +48,7 @@ services:
     env_file: 
       - .env
     healthcheck:
-      test: ["CMD", "test", "-f", "/app/frontend/out/.ready"]
+      test: ["CMD", "test", "-f", "/app/frontend/.ready"]
       interval: 10s
       timeout: 3s
       retries: 60

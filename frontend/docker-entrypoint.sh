@@ -6,7 +6,7 @@ yarn build || { echo "Build failed"; exit 1; }
 mkdir -p /app/frontend/out
 cp -r /app/out/* /app/frontend/out/ || { echo "Copy failed"; ls -l /app/out; exit 1; }
 
-cat > /app/frontend/out/.ready <<EOF
+cat > /app/frontend/.ready <<EOF
 ready
 EOF
 
