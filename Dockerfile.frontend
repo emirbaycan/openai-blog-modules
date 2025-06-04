@@ -9,6 +9,6 @@ COPY frontend/.yarnrc.yml ./
 COPY frontend/.yarn/ .yarn/
 RUN yarn install
 COPY frontend/ .
-RUN yarn build && mkdir -p /app/frontend/out && cp -r /app/out/* /app/frontend/out/
 
-CMD ["node", "watch-build.js"]
+CMD ["sh", "docker-entrypoint.sh"]
+
