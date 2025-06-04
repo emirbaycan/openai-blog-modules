@@ -1,26 +1,14 @@
 # Dockerfile.frontend
-
 FROM node:22
 
 WORKDIR /app
 
 RUN corepack enable && corepack prepare yarn@3.6.1 --activate
-
 COPY frontend/package.json frontend/yarn.lock ./
 COPY frontend/.yarnrc.yml ./
 COPY frontend/.yarn/ .yarn/
 RUN yarn install
-
 COPY frontend/ .
+RUN yarn build     # <<<<< en kritik satır
 
-# Burada build'i runtime'da alacağız, sadece node_modules hazır
-
-CMD ["sh", "-c", "\
-  rm -rf /app/.out-tmp && \
-  yarn build && \
-  mv out .out-tmp && \
-  mkdir out && \
-  cp -a .out-tmp/. out/ && \
-  touch out/.ready && \
-  node watch-build.js \
-"]
+CMD ["node", "watch-build.js"]
